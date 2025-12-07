@@ -30,5 +30,6 @@ public class UsuarioRestController {
 			return new ResponseEntity<>(usuarioDTO,HttpStatus.OK);
 		}
 	}
+	
 
 }
