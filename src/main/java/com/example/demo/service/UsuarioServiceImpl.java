@@ -10,7 +10,8 @@ import com.example.demo.repository.entity.Usuario;
 @Service
 public class UsuarioServiceImpl implements UsuarioService{
 
-	@Autowired UsuarioRepository usuarioRepository;
+	@Autowired 
+	private UsuarioRepository usuarioRepository;
 
 	@Override
 	public void save(UsuarioDTO usuarioDTO) {
