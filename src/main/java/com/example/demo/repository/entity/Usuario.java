@@ -40,6 +40,9 @@ public class Usuario {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date fechanacimiento;
 	
+	
+	private String rutafoto;
+	
 	//private String rol;
 	
 

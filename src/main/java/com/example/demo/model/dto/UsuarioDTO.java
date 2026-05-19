@@ -25,6 +25,8 @@ import lombok.Data;
 			
 			
 			private Date fechanacimiento;
+			
+			private String rutafoto;
 		
 
 			
@@ -42,6 +44,7 @@ import lombok.Data;
 				u1.setCp(u2.getCp());
 				u1.setDireccion(u2.getDireccion());
 				u1.setFechanacimiento(u2.getFechanacimiento());
+				u1.setRutafoto(u2.getRutafoto());
 				
 				return u1;
 			}
@@ -59,7 +62,8 @@ import lombok.Data;
 				u1.setCp(u2.getCp());
 				u1.setDireccion(u2.getDireccion());
 				u1.setFechanacimiento(u2.getFechanacimiento());
-			
+				u1.setRutafoto(u2.getRutafoto());
+				
 				return u1;
 			}
 	}
