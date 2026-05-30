@@ -2,14 +2,17 @@
 	package com.example.demo.model.dto;
 
 	import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.example.demo.repository.entity.Usuario;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-	@Data
-	public class UsuarioDTO implements Serializable {
+
+	@Getter
+	@Setter
+	public class UsuarioEdicionDTO implements Serializable {
 		
 		//propiedad que identifica la versión de cada objeto transportado
 			private static final long serialVersionUID=1L;
@@ -18,29 +21,24 @@ import lombok.Data;
 			private String email;
 			private String claveSeguridad;
 			private String nombre;			
-			private String tel;
-			private String sexo;
+			private String tel;		
 			private String cp;
-			private String direccion;
-			
-			
-			private Date fechanacimiento;
-			
+			private String direccion;				
+			private LocalDate fechanacimiento;		
 			private String rutafoto;
 		
 
 			
 			
 			
-			public static Usuario convertToEntity (UsuarioDTO u2) {
+			public static Usuario convertToEntity (UsuarioEdicionDTO u2) {
 				
 				Usuario u1= new Usuario();
 				u1.setId(u2.getId());
 				u1.setEmail(u2.getEmail());
 				u1.setClaveSeguridad(u2.getClaveSeguridad());
 				u1.setNombre(u2.getNombre());
-				u1.setTel(u2.getTel());
-				u1.setSexo(u2.getSexo());
+				u1.setTel(u2.getTel());			
 				u1.setCp(u2.getCp());
 				u1.setDireccion(u2.getDireccion());
 				u1.setFechanacimiento(u2.getFechanacimiento());
@@ -50,15 +48,14 @@ import lombok.Data;
 			}
 			
 
-			public static UsuarioDTO convertToDTO (Usuario u2) {
+			public static UsuarioEdicionDTO convertToDTO (Usuario u2) {
 				
-				UsuarioDTO u1= new UsuarioDTO();
+				UsuarioEdicionDTO u1= new UsuarioEdicionDTO();
 				u1.setId(u2.getId());
 				u1.setEmail(u2.getEmail());
 				u1.setClaveSeguridad(u2.getClaveSeguridad());
 				u1.setNombre(u2.getNombre());
 				u1.setTel(u2.getTel());
-				u1.setSexo(u2.getSexo());
 				u1.setCp(u2.getCp());
 				u1.setDireccion(u2.getDireccion());
 				u1.setFechanacimiento(u2.getFechanacimiento());

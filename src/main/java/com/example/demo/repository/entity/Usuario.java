@@ -1,52 +1,86 @@
 package com.example.demo.repository.entity;
 
-import java.util.Date;
+import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 import java.util.Objects;
+
+import com.example.demo.repository.entity.enums.RolUsuario;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Setter
+@Getter
 @Entity
-@Table(name="usuarios")
+@Table(name="usuario")
 public class Usuario {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id_usuario")
 	private Long id;
 	
-	@Column(name="email")
-	private String email;
-	
-	@Column(name="clave")
-	private String claveSeguridad;
-	
+	@ManyToOne
+	@JoinColumn(name = "id_tenant", nullable=false)
+	private Tenant tenant;
+
+	@Column(nullable= false)
 	private String nombre;
 	
-	@Column(name="telefono")
+	
+	@Column(name="email", nullable = false, unique = true)
+	private String email;
+	
+	@Column(name="password_hash", nullable = false)
+	private String claveSeguridad;
+	
+	@Column(name="telefono", nullable = false, unique = true)
 	private String tel;
 	
-	private String sexo;
 	private String cp;
 	private String direccion;
 	
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date fechanacimiento;
-	
-	
+	@Column (name="ruta_foto_perfil")
 	private String rutafoto;
 	
-	//private String rol;
+	@Column(name= "fecha_nacimiento")
+	private LocalDate fechanacimiento;
+	
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name= "rol_usuario", nullable = false)
+	private RolUsuario rolUsuario;
+	
+	private Boolean habilitado;
+
+
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion;
+
+
+   @Column(name = "ultimo_acceso")
+    private LocalDateTime ultimoAcceso;
+	
+	
+	
+	
+	
+	
+	
 	
 
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -63,7 +97,6 @@ public class Usuario {
 	public int hashCode() {
 		return Objects.hash(id);
 	}
-	
 	
 	
 }
