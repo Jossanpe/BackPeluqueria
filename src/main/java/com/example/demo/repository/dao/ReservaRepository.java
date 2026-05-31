@@ -6,21 +6,23 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.example.demo.repository.entity.Disponibilidad;
 import com.example.demo.repository.entity.Reserva;
 import com.example.demo.repository.entity.Usuario;
 import com.example.demo.repository.entity.enums.EstadoReserva;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 	
-	List<Reserva> findByFechaReserva(LocalDate fechaReserva);
+	List<Reserva> findByUsuarioAdministradorAndFechaReservaAndEstadoReserva(Usuario admin, LocalDate fechaReserva, EstadoReserva estadoReserva);
 
 	boolean existsByUsuarioClienteAndEstadoReserva(Usuario usuarioCliente, EstadoReserva estadoReserva);
 
 	Optional<Reserva> findByUsuarioClienteAndEstadoReserva(Usuario usuarioCliente, EstadoReserva estadoReserva);
 	
+	List<Reserva> findByUsuarioAdministradorAndFechaReservaBetween(Usuario usuarioAdministrador, LocalDate fechaInicio,LocalDate fechaFin);
+
+	Optional<Reserva> findByIdReservaAndUsuarioAdministrador(Long idReserva, Usuario usuarioAdministrador);
 	
-	
+	List<Reserva> findByUsuarioAdministradorAndEstadoReserva(Usuario usuarioAdministrador, EstadoReserva estadoReserva);
 	
 	
 }

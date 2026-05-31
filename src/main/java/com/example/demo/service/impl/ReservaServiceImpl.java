@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.config.SecurityUtils;
+import com.example.demo.model.dto.AgendaSlotDTO;
 import com.example.demo.model.dto.ReservaAdminDTO;
 import com.example.demo.model.dto.ReservaConsultaClienteDTO;
 import com.example.demo.model.dto.ReservaDTO;
@@ -44,69 +45,81 @@ public class ReservaServiceImpl implements ReservaService {
 	// Y LUEGO LLENAMOS LOS SLOTS CON DISPONIBILIDAD, DESCANSOS, EXCEPCIONES Y
 	// RESERVAS
 
+	
+	
+	
+	//OBTNER SLOTS DE LA SEMANA
 	@Override
 	public List<SlotsDiaDTO> obtenerSlotsSemana(LocalDate fechaInicioSemana) {
+		String tel = SecurityUtils.obtenerTelUsuario();
+
+		Usuario cliente = usuarioRepository.findByTel(tel).orElseThrow();
+
+		Usuario admin = usuarioRepository.findByRolUsuarioAndTenant(RolUsuario.ADMINISTRADOR, cliente.getTenant())
+				.orElseThrow();
+		actualizarReservasCompletadas(admin);
 
 		List<SlotsDiaDTO> resultado = new ArrayList<>();
 
-		// RECORRER 7 DIAS
+		// recorrer 7 dias
 
 		for (int i = 0; i < 7; i++) {
 
-			// FECHA ACTUAL
+			// fecha actual
 			LocalDate fecha = fechaInicioSemana.plusDays(i);
 
-			// DTO DEL DIA
+			// dto del dia
 			SlotsDiaDTO dto = new SlotsDiaDTO();
 
 			dto.setFecha(fecha);
 
-			// CONVERTIR A ENUM
+			// convertir a enum
 			DiaSemana diaActual = convertirDiaSemana(fecha);
 
-			// BUSCAR DISPONIBILIDAD
-			Disponibilidad disponibilidad = disponibilidadRepository.findByDiaSemanaAndActivaTrue(diaActual).orElse(null);
+			// buscar disponibilidad
+			Disponibilidad disponibilidad = disponibilidadRepository
+					.findByUsuarioAdministradorAndDiaSemanaAndActivaTrue(admin, diaActual).orElse(null);
 
-			// SI NO HAY DISPONIBILIDAD DIA VACIO
+			// si no hay disponibilidad dia vacio
 			if (disponibilidad == null) {
 				dto.setSlots(new ArrayList<>());
 				resultado.add(dto);
 				continue;
 			}
 
-			// GENERAR SLOTS BASE
+			// generar slots base
 			List<LocalTime> slots = (generarSlots(disponibilidad.getHoraInicio(), disponibilidad.getHoraFin(),
 					disponibilidad.getDuracionSlot()));
 
-			// BUSCAR EXCEPCION
-			ExcepcionDisponibilidad excepcion = excepcionRepository.findByFecha(fecha).orElse(null);
+			// buscar excepcion
+			List<ExcepcionDisponibilidad> excepciones = excepcionRepository.findByUsuarioAdministradorAndFecha(admin,
+					fecha);
 
-			// APLICAR EXCEPCION
-			if (excepcion != null) {
+			// aplicar excepcion
+			for (ExcepcionDisponibilidad excepcion : excepciones) {
 
-				// DIA COMPLETO
-				if (excepcion.getDiaCompleto()) {
+				if (Boolean.TRUE.equals(excepcion.getDiaCompleto())) {
 
 					slots = new ArrayList<>();
 
-				} else {
-					// EXCEPCION HORARIA
-					slots = filtrarExcepcion(slots, excepcion.getHoraInicio(), excepcion.getHoraFin());
+					break;
 				}
+
+				slots = filtrarExcepcion(slots, excepcion.getHoraInicio(), excepcion.getHoraFin());
 			}
 
 			// FILTRAR RESERVAS
 
-			List<Reserva> reservas = reservaRepository.findByFechaReserva(fecha);
+			List<Reserva> reservas = reservaRepository.findByUsuarioAdministradorAndFechaReservaAndEstadoReserva(admin, fecha,EstadoReserva.ACTIVA);
 			slots = filtrarReservas(slots, reservas);
 
-			// FILTRAR DESCANSO
+			//filtrar descanso
 			if (disponibilidad.getDescansoInicio() != null && disponibilidad.getDescansoFin() != null) {
 
 				slots = filtrarDescanso(slots, disponibilidad.getDescansoInicio(), disponibilidad.getDescansoFin());
 
 			}
-			// GUARDAR SLOTS
+			// guardar slots
 
 			dto.setSlots(slots);
 
@@ -116,6 +129,9 @@ public class ReservaServiceImpl implements ReservaService {
 		return resultado;
 
 	}
+	
+	
+	
 
 	// FILTRAR DESCANSO- //PARA ELIMINAR LOS SLOTS DENTRO DEL DESCANSO
 	private List<LocalTime> filtrarDescanso(List<LocalTime> slots, LocalTime descansoInicio, LocalTime descansoFin) {
@@ -123,6 +139,9 @@ public class ReservaServiceImpl implements ReservaService {
 		return slots.stream().filter(slot -> slot.isBefore(descansoInicio) || !slot.isBefore(descansoFin)).toList();
 
 	}
+	
+	
+	
 
 	// GENERA SLOTS
 
@@ -142,19 +161,30 @@ public class ReservaServiceImpl implements ReservaService {
 
 		return slots;
 	}
+	
+	
+	
 
 	// FILTRAR EXCEPCIONES
 	private List<LocalTime> filtrarExcepcion(List<LocalTime> slots, LocalTime inicio, LocalTime fin) {
 
 		return slots.stream().filter(slot -> slot.isBefore(inicio) || !slot.isBefore(fin)).toList();
 	}
+	
+	
+	
+	
 
 	// FILTRAR RESERVAS, ELIMINA SLOTS YA RESERVADOS
 	private List<LocalTime> filtrarReservas(List<LocalTime> slots, List<Reserva> reservas) {
 
-		return slots.stream().filter(slot -> reservas.stream().noneMatch(
-						reserva -> !slot.isBefore(reserva.getHoraInicio()) && slot.isBefore(reserva.getHoraFin()))).toList();
+		return slots.stream()
+				.filter(slot -> reservas.stream().noneMatch(
+						reserva -> !slot.isBefore(reserva.getHoraInicio()) && slot.isBefore(reserva.getHoraFin())))
+				.toList();
 	}
+	
+	
 
 	// CONVERTIR DIA SEMANA
 
@@ -163,12 +193,11 @@ public class ReservaServiceImpl implements ReservaService {
 		return DiaSemana.values()[fecha.getDayOfWeek().getValue() - 1];
 	}
 
-
 	
 	
 	
+	//CREAR RESERVA
 	
-
 	@Override
 	public void crearReserva(ReservaDTO dto) {
 
@@ -176,125 +205,264 @@ public class ReservaServiceImpl implements ReservaService {
 
 		Usuario cliente = usuarioRepository.findByTel(tel).orElseThrow();
 
-		Usuario admin = usuarioRepository.findFirstByRolUsuario(RolUsuario.ADMINISTRADOR).orElseThrow();
+		Usuario admin = usuarioRepository.findByRolUsuarioAndTenant(RolUsuario.ADMINISTRADOR, cliente.getTenant())
+				.orElseThrow();
 
-		crearReservaInterna(cliente, admin, dto.getFechaReserva(), dto.getHoraInicio(), dto.getDuracionMinutos(),
+		crearReservaInterna(cliente, admin, dto.getFechaReserva(), dto.getHoraInicio(), dto.getDuracionMinutos(),dto.getDescripcion(),
 				TipoReserva.CLIENTE);
-		}
-
-
+	}
 
 	@PreAuthorize("hasRole('ADMINISTRADOR')")
-		@Override
-		public void crearReservaAdmin(ReservaAdminDTO dto) {
+	@Override
+	public void crearReservaAdmin(ReservaAdminDTO dto) {
+		Usuario admin = usuarioRepository.findByTel(SecurityUtils.obtenerTelUsuario()).orElseThrow();
+		Usuario cliente = null;
 
-			Usuario cliente = null;
+		if (dto.getTelCliente() != null && !dto.getTelCliente().isBlank()) {
 
-			if (dto.getIdCliente() != null) {
+			cliente = usuarioRepository.findByTelAndTenant(dto.getTelCliente(), admin.getTenant()).orElseThrow();
+		}
 
-				cliente = usuarioRepository.findById(dto.getIdCliente()).orElseThrow();
-			}
+		crearReservaInterna(cliente, admin, dto.getFechaReserva(), dto.getHoraInicio(), dto.getDuracionMinutos(),dto.getDescripcion(),
+				TipoReserva.ADMINISTRADOR);
 
-			Usuario admin = usuarioRepository.findByTel(SecurityUtils.obtenerTelUsuario()).orElseThrow();
-			
-			
-			crearReservaInterna(cliente, admin, dto.getFechaReserva(), dto.getHoraInicio(), dto.getDuracionMinutos(),
-					TipoReserva.ADMINISTRADOR);
+	}
 
-		  }
-		
 	
+	
+	private void crearReservaInterna(Usuario cliente, Usuario admin, LocalDate fecha, LocalTime horaInicio,
+			Integer duracion,String descripcion, TipoReserva tipoReserva) {
+
+		if (duracion == null || duracion <= 0) {
+
+			DiaSemana diaSemana = convertirDiaSemana(fecha);
+
+			Disponibilidad disponibilidad = disponibilidadRepository
+					.findByUsuarioAdministradorAndDiaSemanaAndActivaTrue(admin, diaSemana).orElseThrow();
+
+			duracion = disponibilidad.getDuracionSlot();
+		}
+		LocalTime horaFin = horaInicio.plusMinutes(duracion);
+
+		List<Reserva> reservas = reservaRepository.findByUsuarioAdministradorAndFechaReservaAndEstadoReserva(admin, fecha, EstadoReserva.ACTIVA);
+
+		boolean existeSolape = reservas.stream().anyMatch(
+				reserva -> horaInicio.isBefore(reserva.getHoraFin()) && horaFin.isAfter(reserva.getHoraInicio()));
+
+		if (existeSolape) {
+			throw new RuntimeException("Ya existe una reserva en ese horario");
+		}
+
+		Reserva reserva = new Reserva();
+
+		reserva.setUsuarioCliente(cliente);
+		reserva.setUsuarioAdministrador(admin);
+
+		reserva.setFechaReserva(fecha);
+
+		reserva.setHoraInicio(horaInicio);
+
+		reserva.setHoraFin(horaFin);
+
+		reserva.setDuracionMinutos(duracion);
+
+		reserva.setEstadoReserva(EstadoReserva.ACTIVA);
+
+		reserva.setTipoReserva(tipoReserva);
+
+		if (cliente != null
+				&& reservaRepository.existsByUsuarioClienteAndEstadoReserva(cliente, EstadoReserva.ACTIVA)) {
+
+			throw new RuntimeException("Ya tienes una reserva activa");
+		}
+
+		reservaRepository.save(reserva);
+	}
+
+	@Override
+	public ReservaConsultaClienteDTO obtenerReservaCliente() {
+		String tel = SecurityUtils.obtenerTelUsuario();
+
+		Usuario cliente = usuarioRepository.findByTel(tel).orElseThrow();
+		actualizarReservasCompletadas(cliente);
+
+		Reserva reserva = reservaRepository.findByUsuarioClienteAndEstadoReserva(cliente, EstadoReserva.ACTIVA)
+				.orElse(null);
+		if (reserva == null) {
+
+			return null;
+		}
+		ReservaConsultaClienteDTO dto = new ReservaConsultaClienteDTO();
+		dto.setIdReserva(reserva.getIdReserva());
+
+		dto.setFechaReserva(reserva.getFechaReserva());
+
+		dto.setHoraInicio(reserva.getHoraInicio());
+
+		dto.setTipoReserva(reserva.getTipoReserva());
+		return dto;
+
+	}
+
+	@Override
+	public void cancelarReserva() {
+		String tel = SecurityUtils.obtenerTelUsuario();
+
+		Usuario cliente = usuarioRepository.findByTel(tel).orElseThrow();
+
+		Reserva reserva = reservaRepository.findByUsuarioClienteAndEstadoReserva(cliente, EstadoReserva.ACTIVA)
+				.orElseThrow();
+		reserva.setEstadoReserva(EstadoReserva.CANCELADA);
+
+	}
+	
+	@Override
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	public void cancelarReservaAdmin(Long idReserva) {
+
+		Usuario admin = usuarioRepository.findByTel(SecurityUtils.obtenerTelUsuario()).orElseThrow();
+
+		Reserva reserva = reservaRepository.findByIdReservaAndUsuarioAdministrador(idReserva, admin).orElseThrow();
+
+		reserva.setEstadoReserva(EstadoReserva.CANCELADA);
+	}
+	
+	
+	
+
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@Override
+	public List<AgendaSlotDTO> obtenerAgendaSemana(LocalDate fechaInicioSemana) {
+
+		Usuario admin = usuarioRepository.findByTel(SecurityUtils.obtenerTelUsuario()).orElseThrow();
+		actualizarReservasCompletadas(admin);
+
+		List<Disponibilidad> disponibilidades = disponibilidadRepository.findByUsuarioAdministradorAndActivaTrue(admin);
+
+		if (disponibilidades.isEmpty()) {
+			throw new RuntimeException("No existe disponibilidad configurada");
+		}
+
+		Integer duracionSlot = disponibilidades.get(0).getDuracionSlot();
+		
+		List<Reserva> reservas = reservaRepository.findByUsuarioAdministradorAndFechaReservaBetween(admin,fechaInicioSemana, fechaInicioSemana.plusDays(6));
+		
+		List<ExcepcionDisponibilidad> excepciones = excepcionRepository.findByUsuarioAdministradorOrderByFechaAsc(admin);
 		
 		
-		
-			private void crearReservaInterna(Usuario cliente, Usuario admin, LocalDate fecha, LocalTime horaInicio,
-					Integer duracion, TipoReserva tipoReserva) {
 
-				if (duracion == null || duracion <= 0) {
+		List<AgendaSlotDTO> agenda = new ArrayList<>();
 
-					DiaSemana diaSemana = convertirDiaSemana(fecha);
+		for (int dia = 0; dia < 7; dia++) {
 
-					Disponibilidad disponibilidad = disponibilidadRepository.findByDiaSemanaAndActivaTrue(diaSemana).orElseThrow();
+			LocalDate fecha = fechaInicioSemana.plusDays(dia);
+			
+			DiaSemana diaSemana = convertirDiaSemana(fecha);
 
-					duracion = disponibilidad.getDuracionSlot();
-				}
-				LocalTime horaFin = horaInicio.plusMinutes(duracion);
+			Disponibilidad disponibilidad = disponibilidadRepository.findByUsuarioAdministradorAndDiaSemanaAndActivaTrue(admin, diaSemana).orElse(null);
 
-				List<Reserva> reservas = reservaRepository.findByFechaReserva(fecha);
+			LocalTime hora = LocalTime.of(8, 0);
 
-				boolean existeSolape = reservas.stream().anyMatch(reserva -> horaInicio.isBefore(reserva.getHoraFin())
-						&& horaFin.isAfter(reserva.getHoraInicio()));
+			while (hora.isBefore(LocalTime.of(23, 0))) {
 
-				if (existeSolape) {
-					throw new RuntimeException("Ya existe una reserva en ese horario");
-				}
+				AgendaSlotDTO slot = new AgendaSlotDTO();
 
-				Reserva reserva = new Reserva();
+				slot.setFecha(fecha);
 
-				reserva.setUsuarioCliente(cliente);
-				reserva.setUsuarioAdministrador(admin);
+				slot.setHoraInicio(hora);
 
-				reserva.setFechaReserva(fecha);
-
-				reserva.setHoraInicio(horaInicio);
-
-				reserva.setHoraFin(horaFin);
-
-				reserva.setDuracionMinutos(duracion);
-
-				reserva.setEstadoReserva(EstadoReserva.ACTIVA);
-
-				reserva.setTipoReserva(tipoReserva);
+				slot.setHoraFin(hora.plusMinutes(duracionSlot));
+				slot.setTipo("LIBRE");
 				
-				if (cliente != null && reservaRepository.existsByUsuarioClienteAndEstadoReserva(cliente, EstadoReserva.ACTIVA)) {
+				LocalTime horaActual = hora;
+				Reserva reserva = reservas.stream().filter(r -> r.getEstadoReserva() == EstadoReserva.ACTIVA && r.getFechaReserva().equals(fecha)
+								&& r.getHoraInicio().equals(horaActual)).findFirst().orElse(null);
+				
+				if (reserva != null) {
 
-					throw new RuntimeException("Ya tienes una reserva activa");
+
+				    if (reserva.getUsuarioCliente()==null) {
+
+				        slot.setTipo("BLOQUEO_ADMIN");
+
+				    } else {
+
+				        slot.setTipo("RESERVA_CLIENTE");
+				    }
+
+					slot.setIdReserva(reserva.getIdReserva());
+					slot.setDescripcion(reserva.getDescripcion());
+					
+					if (reserva.getUsuarioCliente() != null) {
+						
+						slot.setNombreCliente(reserva.getUsuarioCliente().getNombre());
+						
+						slot.setTelefonoCliente(reserva.getUsuarioCliente().getTel());
+					}
+				}
+					
+				if ("LIBRE".equals(slot.getTipo())) {
+
+						boolean tieneExcepcion = excepciones.stream().anyMatch(excepcion ->
+
+						excepcion.getFecha().equals(fecha)&&(Boolean.TRUE.equals(excepcion.getDiaCompleto())||
+								(!horaActual.isBefore(excepcion.getHoraInicio())&& horaActual.isBefore(excepcion.getHoraFin()))));
+
+						if (tieneExcepcion) {
+
+							slot.setTipo("EXCEPCION");
+						}
+					
 				}
 
-				reservaRepository.save(reserva);
-			}
+	if ("LIBRE".equals(slot.getTipo()) && disponibilidad != null && disponibilidad.getDescansoInicio() != null && disponibilidad.getDescansoFin() != null) {
 
-			
-			
-			
-			@Override
-			public ReservaConsultaClienteDTO obtenerReservaCliente() {
-				String tel = SecurityUtils.obtenerTelUsuario();
+					boolean esDescanso =!horaActual.isBefore(disponibilidad.getDescansoInicio())&&horaActual.isBefore(disponibilidad.getDescansoFin());
 
+					if (esDescanso) {
 
-			    Usuario cliente = usuarioRepository.findByTel(tel).orElseThrow();
-			    
-				Reserva reserva = reservaRepository.findByUsuarioClienteAndEstadoReserva(cliente, EstadoReserva.ACTIVA).orElse(null);
-				if(reserva == null) {
-
-				    return null;
+						slot.setTipo("DESCANSO");
+					}
 				}
-				    ReservaConsultaClienteDTO dto = new ReservaConsultaClienteDTO();
-					dto.setIdReserva(reserva.getIdReserva());
+						
 
-					dto.setFechaReserva(reserva.getFechaReserva());
+				agenda.add(slot);
 
-					dto.setHoraInicio(reserva.getHoraInicio());
-
-					dto.setTipoReserva(reserva.getTipoReserva());
-					return dto;
-				    
-				}
-			
-			
-			@Override
-			public void cancelarReserva() {
-				String tel = SecurityUtils.obtenerTelUsuario();
-
-				Usuario cliente = usuarioRepository.findByTel(tel).orElseThrow();
-
-				Reserva reserva = reservaRepository.findByUsuarioClienteAndEstadoReserva(cliente, EstadoReserva.ACTIVA).orElseThrow();
-				reserva.setEstadoReserva(EstadoReserva.CANCELADA);
-
+				hora = hora.plusMinutes(duracionSlot);
 			}
-			
-			
-			
-			
+		}
 
+		return agenda;
+	}
+
+	
+	
+	private void actualizarReservasCompletadas(Usuario admin) {
+
+		LocalDate hoy = LocalDate.now();
+
+		LocalTime ahora = LocalTime.now();
+
+		List<Reserva> reservas = reservaRepository.findByUsuarioAdministradorAndEstadoReserva(admin,
+				EstadoReserva.ACTIVA);
+
+		reservas.forEach(reserva -> {
+
+			boolean completada =
+
+					reserva.getFechaReserva().isBefore(hoy)
+
+							||
+
+							(reserva.getFechaReserva().equals(hoy) && reserva.getHoraFin().isBefore(ahora));
+
+			if (completada) {
+
+				reserva.setEstadoReserva(EstadoReserva.COMPLETADA);
 			}
+		});
+	}
+	
+	
+	
+}

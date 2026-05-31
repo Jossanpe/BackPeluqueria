@@ -3,6 +3,7 @@ package com.example.demo.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.demo.model.dto.AgendaSlotDTO;
 import com.example.demo.model.dto.ReservaAdminDTO;
 import com.example.demo.model.dto.ReservaConsultaClienteDTO;
 import com.example.demo.model.dto.ReservaDTO;
@@ -17,5 +18,8 @@ public interface ReservaService {
 	ReservaConsultaClienteDTO obtenerReservaCliente();
 	
 	void cancelarReserva();
+	void cancelarReservaAdmin(Long idReserva) ;
+	
+	List<AgendaSlotDTO> obtenerAgendaSemana(LocalDate fechaInicioSemana);
 	
 }

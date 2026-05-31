@@ -21,5 +21,5 @@ public interface ExcepcionDisponibilidadRepository extends JpaRepository<Excepci
 
 	List<ExcepcionDisponibilidad> findByUsuarioAdministradorAndFecha(Usuario usuarioAdministrador, LocalDate fecha);
 
-	Optional<ExcepcionDisponibilidad> findByFecha(LocalDate fecha);
+	
 }

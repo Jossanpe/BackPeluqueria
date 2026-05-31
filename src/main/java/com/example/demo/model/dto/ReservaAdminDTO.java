@@ -15,11 +15,13 @@ import lombok.Setter;
 public class ReservaAdminDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private  Long idCliente;
+	
+	 private String telCliente;
 
     private LocalDate fechaReserva;
 
     private LocalTime horaInicio;
-    
+    private LocalTime horaFin;  
     private int duracionMinutos;
+    private String descripcion;
 }

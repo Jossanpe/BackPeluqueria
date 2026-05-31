@@ -44,10 +44,8 @@ public class ExcepcionDisponibilidadServiceImpl implements ExcepcionDisponibilid
 		if( !dto.getDiaCompleto()
 			){
 			if(
-			        dto.getHoraFin()
-			        .isBefore(
-			            dto.getHoraInicio())
-			        ){
+				    !dto.getHoraFin().isAfter(dto.getHoraInicio())
+				){
 
 			        throw new RuntimeException(
 			            "La hora fin no puede ser menor que la hora inicio"
@@ -85,8 +83,21 @@ public class ExcepcionDisponibilidadServiceImpl implements ExcepcionDisponibilid
 	@PreAuthorize("hasRole('ADMINISTRADOR')")
 	@Override
 	public void eliminarExcepcion(Long idExcepcion) {
+		
+		String tel = SecurityUtils.obtenerTelUsuario();
 
-		excepcionRepository.deleteById(idExcepcion);
+		Usuario admin = usuarioRepository.findByTel(tel).orElseThrow();
+
+		ExcepcionDisponibilidad excepcion = excepcionRepository.findById(idExcepcion).orElseThrow();
+
+		if (!excepcion.getUsuarioAdministrador().equals(admin)) {
+
+			throw new RuntimeException("No puedes eliminar esta excepción");
+		}
+
+		excepcionRepository.delete(excepcion);
+		
+	
 	}
 
 

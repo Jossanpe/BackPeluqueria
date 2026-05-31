@@ -4,13 +4,17 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.model.dto.AgendaSlotDTO;
 import com.example.demo.model.dto.ReservaAdminDTO;
 import com.example.demo.model.dto.ReservaConsultaClienteDTO;
 import com.example.demo.model.dto.ReservaDTO;
@@ -41,6 +45,7 @@ public class ReservaRestController {
 		reservaService.crearReserva(dto);
 	}
 
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
 	@PostMapping("/reservas/admin/add")
 	public void crearReservaAdmin(@RequestBody ReservaAdminDTO dto) {
 
@@ -54,9 +59,29 @@ public class ReservaRestController {
 		return reservaService.obtenerReservaCliente();
 	}	
 	
-	@PutMapping("reservas/cancelar")
+	@PutMapping("/reservas/cancelar")
 	public void cancelarReserva() {
 		reservaService.cancelarReserva();
 	}
+	
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PutMapping("reservas/cancelar-admin/{idReserva}")
+	public void cancelarReservaAdmin(@PathVariable Long idReserva) {
+		reservaService.cancelarReservaAdmin(idReserva);
+	}
+	
+	
+	
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@GetMapping("/reservas/agenda")
+	public ResponseEntity<List<AgendaSlotDTO>> obtenerAgendaSemana(@RequestParam LocalDate fechaInicioSemana) {
+
+		return ResponseEntity.ok(reservaService.obtenerAgendaSemana(fechaInicioSemana));
+	}
+	
+	
+	
+	
+	
 
 }

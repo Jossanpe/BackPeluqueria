@@ -1,9 +1,11 @@
 package com.example.demo.web.webservices;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.dto.LoginDTO;
 import com.example.demo.model.dto.LoginResponseDTO;
+import com.example.demo.model.dto.UsuarioDTO;
 import com.example.demo.model.dto.UsuarioRegistroDTO;
 import com.example.demo.service.UsuarioService;
 
@@ -59,7 +62,11 @@ public class UsuarioRestController {
 	}
 	
 	
-	
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@GetMapping("/clientes")
+	public List<UsuarioDTO> obtenerClientes(){
+		 return usuarioService.obtenerClientesAdministrador();
+	}
 	
 	
 	

@@ -19,4 +19,5 @@ public class ReservaDTO implements Serializable {
     private LocalTime horaInicio;
     
     private int duracionMinutos;
+    private String descripcion;
 }

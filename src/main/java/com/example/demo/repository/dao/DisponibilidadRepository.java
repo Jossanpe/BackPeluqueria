@@ -17,6 +17,6 @@ public interface DisponibilidadRepository extends JpaRepository<Disponibilidad, 
 
 	List<Disponibilidad> findByUsuarioAdministradorAndActivaTrueOrderByDiaSemanaAsc(Usuario usuarioAdministrador);
 
-	Optional<Disponibilidad>findByDiaSemanaAndActivaTrue(DiaSemana diaSemana);
+	Optional<Disponibilidad>findByUsuarioAdministradorAndDiaSemanaAndActivaTrue(Usuario usuarioAdministrador,DiaSemana diaSemana);
 
 }

@@ -3,23 +3,27 @@ package com.example.demo.service.impl;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.config.JwtService;
+import com.example.demo.config.SecurityUtils;
 import com.example.demo.model.dto.LoginDTO;
 import com.example.demo.model.dto.LoginResponseDTO;
+import com.example.demo.model.dto.UsuarioDTO;
 import com.example.demo.model.dto.UsuarioRegistroDTO;
 import com.example.demo.repository.dao.TenantRepository;
 import com.example.demo.repository.dao.UsuarioRepository;
 import com.example.demo.repository.entity.Tenant;
 import com.example.demo.repository.entity.Usuario;
-import com.example.demo.service.UsuarioService;
 import com.example.demo.repository.entity.enums.RolUsuario;
+import com.example.demo.service.UsuarioService;
 
 import jakarta.transaction.Transactional;
 
@@ -113,6 +117,15 @@ public class UsuarioServiceImpl implements UsuarioService{
 	
 	
 	
+	@Override
+	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	public List<UsuarioDTO> obtenerClientesAdministrador() {
+
+		Usuario admin = usuarioRepository.findByTel(SecurityUtils.obtenerTelUsuario()).orElseThrow();
+
+		return usuarioRepository.findByTenantAndRolUsuario(admin.getTenant(), RolUsuario.CLIENTE).stream()
+				.map(UsuarioDTO::convertToDTO).toList();
+	}
 	
 	
 	
