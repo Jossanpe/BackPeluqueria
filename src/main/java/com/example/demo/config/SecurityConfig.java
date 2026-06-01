@@ -37,7 +37,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 //PermitAll() no impide que el filtro se ejecute
-        http.cors(cors->{}).csrf(csrf -> csrf.disable()).authorizeHttpRequests(auth -> auth.requestMatchers("/**/usuarios/add", "/**/usuarios/login","/uploads/**").permitAll()
+        http.cors(cors->{}).csrf(csrf -> csrf.disable()).authorizeHttpRequests(auth -> auth.requestMatchers("/usuarios/add", "/usuarios/login","/uploads/**").permitAll()
         		.requestMatchers("/admin/**").hasRole("ADMINISTRADOR").anyRequest().authenticated())
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
