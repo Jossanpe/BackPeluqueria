@@ -2,6 +2,7 @@ package com.example.demo.model.dto;
 
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 import com.example.demo.repository.entity.Usuario;
 
@@ -19,6 +20,10 @@ public class UsuarioDTO implements Serializable {
     private String nombre;
 
     private String tel;
+    private String direccion;
+    private String codigoPostal;
+    private LocalDate fechaNacimiento;
+    private String email;
 
     public static UsuarioDTO convertToDTO(Usuario usuario) {
 
@@ -29,6 +34,10 @@ public class UsuarioDTO implements Serializable {
         dto.setNombre(usuario.getNombre());
 
         dto.setTel(usuario.getTel());
+        dto.setDireccion(usuario.getDireccion());
+        dto.setCodigoPostal(usuario.getCp());
+        dto.setFechaNacimiento(usuario.getFechanacimiento());
+        dto.setEmail(usuario.getEmail());
 
         return dto;
     }
