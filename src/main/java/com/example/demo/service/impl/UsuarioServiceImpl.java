@@ -126,6 +126,45 @@ public class UsuarioServiceImpl implements UsuarioService{
 		return usuarioRepository.findByTenantAndRolUsuario(admin.getTenant(), RolUsuario.CLIENTE).stream()
 				.map(UsuarioDTO::convertToDTO).toList();
 	}
+
+	@Override
+	public UsuarioDTO obtenerPerfil(String tel) {
+
+		Usuario usuario = usuarioRepository.findByTel(tel).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+		UsuarioDTO dto = new UsuarioDTO();
+
+		dto.setId(usuario.getId());
+		dto.setNombre(usuario.getNombre());
+		dto.setFechanacimiento(usuario.getFechanacimiento());
+		dto.setTel(usuario.getTel());
+		dto.setCp(usuario.getCp());
+		dto.setDireccion(usuario.getDireccion());
+		dto.setEmail(usuario.getEmail());
+
+		return dto;
+	}
+
+	
+	@Override
+	public void actualizarPerfil(String tel, UsuarioDTO dto, MultipartFile fotoperfil) {
+		
+
+		Usuario usuario = usuarioRepository.findByTel(tel).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+		usuario.setEmail(dto.getEmail());
+		usuario.setDireccion(dto.getDireccion());
+		usuario.setCp(dto.getCp());
+		usuario.setFechanacimiento(dto.getFechanacimiento());
+		if (fotoperfil != null && !fotoperfil.isEmpty()) {
+
+			usuario.setRutafoto(nombreArchivo);
+		}
+
+		usuario = usuarioRepository.save(usuario);
+	
+	}
+	
 	
 	
 	

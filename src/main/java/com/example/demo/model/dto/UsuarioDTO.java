@@ -21,9 +21,10 @@ public class UsuarioDTO implements Serializable {
 
     private String tel;
     private String direccion;
-    private String codigoPostal;
-    private LocalDate fechaNacimiento;
+    private String cp;
+    private LocalDate fechanacimiento;
     private String email;
+    private String Rutafoto;
 
     public static UsuarioDTO convertToDTO(Usuario usuario) {
 
@@ -35,9 +36,10 @@ public class UsuarioDTO implements Serializable {
 
         dto.setTel(usuario.getTel());
         dto.setDireccion(usuario.getDireccion());
-        dto.setCodigoPostal(usuario.getCp());
-        dto.setFechaNacimiento(usuario.getFechanacimiento());
+        dto.setCp(usuario.getCp());
+        dto.setFechanacimiento(usuario.getFechanacimiento());
         dto.setEmail(usuario.getEmail());
+        dto.setRutafoto(usuario.getRutafoto());
 
         return dto;
     }

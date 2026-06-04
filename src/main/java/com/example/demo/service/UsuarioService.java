@@ -18,4 +18,8 @@ public interface UsuarioService {
 	LoginResponseDTO login(LoginDTO loginDTO);
 	List<UsuarioDTO> obtenerClientesAdministrador();
 
+	UsuarioDTO obtenerPerfil(String tel);
+
+	void actualizarPerfil(String tel, UsuarioDTO usuarioDTO, MultipartFile fotoperfil);
+
 }
