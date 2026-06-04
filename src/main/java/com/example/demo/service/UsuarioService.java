@@ -20,6 +20,6 @@ public interface UsuarioService {
 
 	UsuarioDTO obtenerPerfil(String tel);
 
-	void actualizarPerfil(String tel, UsuarioDTO usuarioDTO, MultipartFile fotoperfil);
+	void actualizarPerfil(String tel, UsuarioDTO usuarioDTO);
 
 }

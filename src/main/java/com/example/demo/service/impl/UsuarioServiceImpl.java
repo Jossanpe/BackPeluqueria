@@ -145,26 +145,20 @@ public class UsuarioServiceImpl implements UsuarioService{
 		return dto;
 	}
 
-	
 	@Override
-	public void actualizarPerfil(String tel, UsuarioDTO dto, MultipartFile fotoperfil) {
-		
+	public void actualizarPerfil(String tel, UsuarioDTO dto) {
 
-		Usuario usuario = usuarioRepository.findByTel(tel).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+		Usuario usuario = usuarioRepository.findByTel(tel)
+				.orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-		usuario.setEmail(dto.getEmail());
 		usuario.setDireccion(dto.getDireccion());
+
 		usuario.setCp(dto.getCp());
+
 		usuario.setFechanacimiento(dto.getFechanacimiento());
-		if (fotoperfil != null && !fotoperfil.isEmpty()) {
 
-			usuario.setRutafoto(nombreArchivo);
-		}
-
-		usuario = usuarioRepository.save(usuario);
-	
+		usuarioRepository.save(usuario);
 	}
-	
 	
 	
 	

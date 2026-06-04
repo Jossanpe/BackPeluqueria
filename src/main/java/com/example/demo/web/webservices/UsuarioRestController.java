@@ -75,22 +75,15 @@ public class UsuarioRestController {
 		return ResponseEntity.ok(usuario);
 	}
 	
-	@PutMapping(value = "/update", consumes = "multipart/form-data")
-	public ResponseEntity<Void> actualizarPerfil(Authentication authentication,
-
-			@ModelAttribute UsuarioDTO usuarioDTO,
-
-			@RequestParam(value = "fotoperfil", required = false) MultipartFile fotoperfil) {
+	@PutMapping("/update")
+	public ResponseEntity<Void> actualizarPerfil(Authentication authentication, @RequestBody UsuarioDTO usuarioDTO) {
 
 		String tel = authentication.getName();
 
-		usuarioService.actualizarPerfil(tel, usuarioDTO, fotoperfil);
+		usuarioService.actualizarPerfil(tel, usuarioDTO);
 
 		return ResponseEntity.ok().build();
 	}
-	
-	
-	
 	
 	
 	
